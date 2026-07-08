@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
 const FEATURE_CARDS = [
@@ -153,15 +154,7 @@ function LandingPage({ onNavigate, user, onLogout }) {
           </div>
         </section>
 
-        <footer className="mb-8 flex flex-col gap-4 border-t border-slate-200 py-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
-          <p className="font-semibold text-slate-900">AI Research Desk</p>
-          <div className="flex flex-wrap gap-4">
-            <button type="button" onClick={() => onNavigate('/research')} className="hover:text-slate-950">Research</button>
-            <button type="button" onClick={() => onNavigate('/compare')} className="hover:text-slate-950">Compare</button>
-            <button type="button" onClick={() => onNavigate('/contact')} className="hover:text-slate-950">Contact</button>
-            <span>hello@researchdesk.com</span>
-          </div>
-        </footer>
+        <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
 function AuthPage({ onNavigate, onAuth, user, onLogout }) {
@@ -112,6 +113,7 @@ function AuthPage({ onNavigate, onAuth, user, onLogout }) {
             )}
           </div>
         </section>
+        <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );

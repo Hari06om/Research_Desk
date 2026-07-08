@@ -1,3 +1,4 @@
+import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
 function getInitial(user) {
@@ -29,6 +30,7 @@ function ProfilePage({ onNavigate, user, onLogout, theme = 'light', onToggleThem
               Login
             </button>
           </section>
+          <Footer onNavigate={onNavigate} />
         </div>
       </div>
     );
@@ -90,6 +92,7 @@ function ProfilePage({ onNavigate, user, onLogout, theme = 'light', onToggleThem
             </button>
           </div>
         </section>
+        <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );

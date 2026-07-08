@@ -1,3 +1,4 @@
+import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
 function ContactPage({ onNavigate, user, onLogout }) {
@@ -31,6 +32,7 @@ function ContactPage({ onNavigate, user, onLogout }) {
             </div>
           </div>
         </section>
+        <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );

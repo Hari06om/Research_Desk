@@ -90,7 +90,7 @@ function Router() {
       return <AuthPage onNavigate={navigate} onAuth={handleAuth} user={user} onLogout={handleLogout} />;
     }
 
-    return <NotFoundPage />;
+    return <NotFoundPage onNavigate={navigate} />;
   }, [currentPath, user, theme]);
 
   return <div>{page}</div>;

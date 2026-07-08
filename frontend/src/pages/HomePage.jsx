@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
 const EXAMPLE_COMPANIES = ['Zomato', 'Nvidia', 'Paytm'];
@@ -424,6 +425,7 @@ function HomePage({ apiUrl, onResearch, onNavigate, user, onLogout }) {
             </div>
           </div>
         )}
+        <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );
