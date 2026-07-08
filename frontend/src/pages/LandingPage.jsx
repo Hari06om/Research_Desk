@@ -1,58 +1,167 @@
+import { useState } from 'react';
 import Navbar from '../components/Navbar.jsx';
 
-function LandingPage({ onNavigate }) {
-  return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_rgba(251,191,36,0.18),_transparent_30%),linear-gradient(135deg,_#071018_0%,_#0f172a_45%,_#111827_100%)] px-6 py-6 text-slate-100 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <Navbar currentPath="/" onNavigate={onNavigate} />
+const FEATURE_CARDS = [
+  ['Company Analysis', 'Business model, competitive position, and operating momentum in one concise brief.'],
+  ['Financial Metrics', 'Revenue quality, valuation context, profitability, and market-cap signals.'],
+  ['News Sentiment', 'Recent coverage summarized into actionable positives, negatives, and watch items.'],
+  ['SWOT Analysis', 'Strengths, weaknesses, opportunities, and threats organized for fast review.'],
+  ['Risk Assessment', 'Key downside scenarios, uncertainty drivers, and confidence checks.'],
+  ['AI Recommendation', 'A clear invest, watch, or pass view with reasoning and supporting evidence.'],
+];
 
-        <section className="grid gap-8 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
-          <div className="flex flex-col justify-center">
-            <div className="mb-4 inline-flex w-fit rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200">
-              Intelligent market research
+const WORKFLOW_STEPS = [
+  ['01', 'Enter a company name or ticker'],
+  ['02', 'The agent gathers financial and news signals'],
+  ['03', 'AI synthesizes risks, metrics, and market context'],
+  ['04', 'Review a recommendation-ready research report'],
+];
+
+function LandingPage({ onNavigate, user, onLogout }) {
+  const [query, setQuery] = useState('');
+
+  function openResearch() {
+    const target = query.trim();
+    if (target) {
+      window.localStorage.setItem('pendingResearchCompany', target);
+    }
+    onNavigate('/research');
+  }
+
+  function viewSampleReport() {
+    document.getElementById('dashboard-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-4 text-slate-950 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-14">
+        <Navbar currentPath="/" onNavigate={onNavigate} user={user} onLogout={onLogout} />
+
+        <section className="grid min-h-[calc(100vh-120px)] items-center gap-10 py-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <div className="mb-5 inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">
+              Financial AI research platform
             </div>
-            <h1 className="font-serif text-4xl font-semibold leading-tight text-white sm:text-5xl">
-              Research companies faster with a clear, guided investment lens.
+            <h1 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+              AI Investment Research Agent
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-              Start with a company name, review a structured research brief, compare two names side by side, and reach a decision with confidence.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+              Generate institutional-style company research with financial metrics, news sentiment, risk analysis, and AI-backed investment recommendations.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+
+            <form
+              className="mt-8 flex max-w-2xl flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.7)] sm:flex-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                openResearch();
+              }}
+            >
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search company or ticker, e.g. AAPL, Nvidia, HDFC Bank"
+                className="min-h-12 flex-1 rounded-xl border border-transparent bg-slate-50 px-4 text-sm font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+              />
+              <button
+                type="submit"
+                className="min-h-12 rounded-xl bg-slate-950 px-5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                Start Research
+              </button>
+            </form>
+
+            <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => onNavigate('/research')}
-                className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:opacity-90"
+                onClick={viewSampleReport}
+                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:text-emerald-800"
               >
-                Start research
+                View Sample Report
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('/compare')}
-                className="rounded-2xl border border-white/10 bg-white/10 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20"
+                className="rounded-xl px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
               >
-                Compare companies
+                Compare Companies
               </button>
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-6 shadow-inner shadow-black/20">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-              What you can do
+          <div id="dashboard-preview" className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_30px_90px_-45px_rgba(15,23,42,0.75)]">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Dashboard Preview</p>
+                <h2 className="mt-2 text-2xl font-black text-slate-950">NVDA Research Snapshot</h2>
+              </div>
+              <div className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-800">Score 86</div>
             </div>
-            <div className="mt-5 space-y-3">
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
               {[
-                'Research a company and receive an investment verdict',
-                'Review key financial signals, risks, and reasoning',
-                'Compare two companies to see which one looks stronger',
-                'Contact the team or share feedback directly',
-              ].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                  {item}
+                ['Revenue Growth', '+42%', 'text-emerald-700'],
+                ['Risk Level', 'Medium', 'text-slate-700'],
+                ['Recommendation', 'Invest', 'text-emerald-700'],
+              ].map(([label, value, tone]) => (
+                <div key={label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+                  <p className={`mt-2 text-2xl font-black ${tone}`}>{value}</p>
                 </div>
               ))}
             </div>
+
+            <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-950 p-5 text-white">
+              <div className="flex h-44 items-end gap-3">
+                {[42, 58, 47, 70, 63, 84, 76, 92, 88].map((height, index) => (
+                  <div key={index} className="flex flex-1 items-end rounded-full bg-white/10">
+                    <div
+                      className="w-full rounded-full bg-gradient-to-t from-emerald-500 to-teal-300 transition-all duration-500"
+                      style={{ height: `${height}%` }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-300">
+                AI insight: accelerating revenue quality and durable demand support a positive outlook, while valuation risk requires disciplined position sizing.
+              </p>
+            </div>
           </div>
         </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {FEATURE_CARDS.map(([title, description]) => (
+            <article key={title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70">
+              <div className="mb-5 h-1.5 w-12 rounded-full bg-emerald-500" />
+              <h3 className="text-lg font-black text-slate-950">{title}</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">How it works</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">From ticker to investment brief in minutes.</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {WORKFLOW_STEPS.map(([number, title]) => (
+              <div key={number} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                <p className="text-sm font-black text-emerald-700">{number}</p>
+                <p className="mt-4 text-base font-bold leading-6 text-slate-900">{title}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="mb-8 flex flex-col gap-4 border-t border-slate-200 py-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+          <p className="font-semibold text-slate-900">AI Research Desk</p>
+          <div className="flex flex-wrap gap-4">
+            <button type="button" onClick={() => onNavigate('/research')} className="hover:text-slate-950">Research</button>
+            <button type="button" onClick={() => onNavigate('/compare')} className="hover:text-slate-950">Compare</button>
+            <button type="button" onClick={() => onNavigate('/contact')} className="hover:text-slate-950">Contact</button>
+            <span>hello@researchdesk.com</span>
+          </div>
+        </footer>
       </div>
     </div>
   );

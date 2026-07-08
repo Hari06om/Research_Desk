@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import Navbar from '../components/Navbar.jsx';
 
-function ComparePage({ apiUrl, onNavigate }) {
+function ComparePage({ apiUrl, onNavigate, user, onLogout }) {
   const [companyA, setCompanyA] = useState('');
   const [companyB, setCompanyB] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,55 +57,35 @@ function ComparePage({ apiUrl, onNavigate }) {
   const winnerName = results[2]?.winner;
 
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-6 text-slate-100 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <div className="rounded-full border border-white/10 bg-slate-900/70 p-1 shadow-lg shadow-black/20 backdrop-blur-xl">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
-            <button type="button" onClick={() => onNavigate('/')} className="rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Research Desk</button>
-            <div className="flex flex-wrap gap-2">
-              {['/', '/research', '/compare', '/contact'].map((path) => {
-                const label = path === '/' ? 'Home' : path === '/research' ? 'Research' : path === '/compare' ? 'Comparison' : 'Contact';
-                const active = location.pathname === path;
-                return (
-                  <button
-                    key={path}
-                    type="button"
-                    onClick={() => onNavigate(path)}
-                    className={`rounded-full px-3 py-2 text-sm transition ${active ? 'bg-white text-slate-900' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-4 text-slate-950 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        <Navbar currentPath="/compare" onNavigate={onNavigate} user={user} onLogout={onLogout} />
 
         <div className="max-w-3xl">
-          <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+          <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">
             Comparison Mode
           </div>
-          <h1 className="font-serif text-4xl font-semibold leading-tight text-white sm:text-5xl">
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
             Compare two companies and see which one looks stronger for profit potential.
           </h1>
-          <p className="mt-4 text-base leading-7 text-slate-400 sm:text-lg">
+          <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
             Enter two company names to run a side-by-side review based on the latest signals, verdicts, and momentum.
           </p>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.65)]">
           <div className="grid gap-4 md:grid-cols-2">
             <input
               value={companyA}
               onChange={(event) => setCompanyA(event.target.value)}
               placeholder="Company A"
-              className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
             />
             <input
               value={companyB}
               onChange={(event) => setCompanyB(event.target.value)}
               placeholder="Company B"
-              className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
             />
           </div>
 
@@ -112,27 +93,27 @@ function ComparePage({ apiUrl, onNavigate }) {
             type="button"
             onClick={runComparison}
             disabled={loading || !companyA.trim() || !companyB.trim()}
-            className="mt-4 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Comparing…' : 'Compare now'}
           </button>
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
             {error}
           </div>
         )}
 
         {results.length === 3 && (
-          <div className="rounded-3xl border border-amber-400/30 bg-amber-500/10 p-6 shadow-2xl shadow-black/20">
-            <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+            <div className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">
               Comparison outcome
             </div>
-            <h2 className="font-serif text-2xl font-semibold text-white">
+            <h2 className="text-2xl font-black text-slate-950">
               {winnerName === 'Tie' ? 'The comparison is a tie.' : `${winnerName} looks stronger for profit potential.`}
             </h2>
-            <p className="mt-2 text-sm leading-7 text-slate-300">
+            <p className="mt-2 text-sm leading-7 text-slate-600">
               This view combines verdict strength, confidence, and recent price momentum to highlight the stronger opportunity.
             </p>
           </div>
@@ -141,11 +122,11 @@ function ComparePage({ apiUrl, onNavigate }) {
         {results.length === 3 && (
           <div className="grid gap-4 lg:grid-cols-2">
             {results.slice(0, 2).map((item) => (
-              <div key={item.companyName} className="rounded-3xl border border-slate-200/80 bg-[#f8f3e8] p-6 text-slate-800 shadow-lg">
-                <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">
+              <div key={item.companyName} className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70">
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                   {item.companyName}
                 </div>
-                <div className="mb-4 inline-flex rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-sm font-semibold text-slate-700">
+                <div className="mb-4 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-800">
                   {item.decision?.verdict || 'WATCH'}
                 </div>
                 <div className="space-y-2 text-sm leading-7 text-slate-700">

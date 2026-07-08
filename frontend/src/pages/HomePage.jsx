@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Navbar from '../components/Navbar.jsx';
 
 const EXAMPLE_COMPANIES = ['Zomato', 'Nvidia', 'Paytm'];
 const TRACE_STEPS = [
@@ -42,13 +43,21 @@ const formatExecutiveSummary = (text) => {
   return paragraphs.length > 0 ? paragraphs : [cleaned];
 };
 
-function HomePage({ apiUrl, onResearch, onNavigate }) {
+function HomePage({ apiUrl, onResearch, onNavigate, user, onLogout }) {
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [visibleSteps, setVisibleSteps] = useState([]);
   const dossierRef = useRef(null);
+
+  useEffect(() => {
+    const pendingCompany = window.localStorage.getItem('pendingResearchCompany');
+    if (pendingCompany) {
+      setCompany(pendingCompany);
+      window.localStorage.removeItem('pendingResearchCompany');
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -118,43 +127,43 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
   const verdict = result?.decision?.verdict;
 
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-6 text-slate-100 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <div className="rounded-full border border-white/10 bg-slate-900/70 p-1 shadow-lg shadow-black/20 backdrop-blur-xl">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
-            <button type="button" onClick={() => onNavigate?.('/')} className="rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Research Desk</button>
-            <div className="flex flex-wrap gap-2">
-              {['/', '/research', '/compare', '/contact'].map((path) => {
-                const label = path === '/' ? 'Home' : path === '/research' ? 'Research' : path === '/compare' ? 'Comparison' : 'Contact';
-                const active = location.pathname === path;
-                return (
-                  <button
-                    key={path}
-                    type="button"
-                    onClick={() => onNavigate?.(path)}
-                    className={`rounded-full px-3 py-2 text-sm transition ${active ? 'bg-white text-slate-900' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-4 text-slate-950 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+        <Navbar currentPath="/research" onNavigate={onNavigate} user={user} onLogout={onLogout} />
+        {user && (
+          <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+                Welcome back
+              </div>
+              <p className="mt-1 text-lg font-black text-slate-950">
+                {user.name || 'Investor'}
+              </p>
+              <p className="text-sm text-slate-600">{user.email}</p>
             </div>
-          </div>
-        </div>
+            <button
+              type="button"
+              onClick={() => onNavigate?.('/profile')}
+              className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+            >
+              View profile
+            </button>
+          </section>
+        )}
         <div className="max-w-3xl animate-[fadeIn_0.7s_ease-both]">
-          <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+          <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">
             Research Desk / Automated Coverage
           </div>
-          <h1 className="font-serif text-4xl font-semibold leading-tight text-white sm:text-5xl">
-            Tell it a company. It comes back with a verdict.
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
+            Generate a decision-ready investment brief.
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-            Enter a company name, and the agent researches the business, reviews recent news and financial signals, and then decides whether to invest or pass — with the reasoning behind that decision clearly shown.
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            Enter a company name or ticker, and the agent reviews financial signals, market news, risk factors, and recommendation logic in one structured report.
           </p>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center" id="terminal-input">
-          <span className="text-lg text-amber-400">&gt;</span>
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.65)] sm:flex-row sm:items-center" id="terminal-input">
+          <span className="text-lg font-black text-emerald-600">&gt;</span>
           <input
             value={company}
             onChange={(event) => setCompany(event.target.value)}
@@ -162,7 +171,7 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
             placeholder="Enter a company name, e.g. Zomato"
             disabled={loading}
             id="company-input"
-            className="w-full border-none bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-500 disabled:opacity-60"
+            className="w-full border-none bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400 disabled:opacity-60"
           />
           <div className="flex flex-wrap gap-2">
             <button
@@ -170,14 +179,14 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
               onClick={() => runAgent()}
               disabled={loading || !company.trim()}
               id="run-button"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Researching…' : 'Run research'}
             </button>
             <button
               type="button"
               onClick={() => onNavigate?.('/compare')}
-              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/20"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:text-emerald-800"
             >
               Compare companies
             </button>
@@ -187,13 +196,13 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
         {!result && !loading && !error && (
           <>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[12px] uppercase tracking-[0.18em] text-slate-500">
+              <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-slate-500">
                 try:
               </span>
               {EXAMPLE_COMPANIES.map((item) => (
                 <span
                   key={item}
-                  className="cursor-pointer rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-sm text-slate-200 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10"
+                  className="cursor-pointer rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:text-emerald-800"
                   onClick={() => {
                     setCompany(item);
                     runAgent(item);
@@ -213,8 +222,10 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-8 text-center text-slate-400">
-              <div className="mb-3 text-4xl">📊</div>
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+              <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-emerald-50 p-3">
+                <div className="h-full rounded-xl bg-gradient-to-t from-emerald-500 to-teal-300" />
+              </div>
               <p>
                 Type a company name above or pick an example to start your
                 research.
@@ -227,36 +238,36 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-2" id="loading-trace">
               {visibleSteps.map((step, index) => (
-                <div className="flex items-center gap-3 font-mono text-sm text-slate-400" key={`${step.text}-${index}`}>
+                <div className="flex items-center gap-3 text-sm font-semibold text-slate-600" key={`${step.text}-${index}`}>
                   {step.done ? (
-                    <span className="text-emerald-400">✓</span>
+                    <span className="text-emerald-600">✓</span>
                   ) : (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-amber-400" />
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
                   )}
                   <span>{step.text}</span>
                 </div>
               ))}
             </div>
-            <div className="h-0.5 w-full animate-pulse rounded-full bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+            <div className="h-0.5 w-full animate-pulse rounded-full bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
           </div>
         )}
 
         {error && (
-          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300" id="error-display">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700" id="error-display">
             {error}
           </div>
         )}
 
         {result?.decision && (
-          <div className="rounded-[2rem] border border-slate-200/80 bg-gradient-to-br from-[#fcfaf6] via-[#f7efe2] to-[#efe3c8] p-6 text-slate-800 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.7)] sm:p-8" ref={dossierRef} id="dossier">
+          <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-slate-800 shadow-[0_30px_90px_-55px_rgba(15,23,42,0.8)] sm:p-8" ref={dossierRef} id="dossier">
             <div className={`mb-6 inline-flex items-center rounded-full border px-4 py-2 font-mono text-sm font-semibold uppercase tracking-[0.2em] ${verdict === 'INVEST' ? 'border-emerald-500/40 bg-emerald-50 text-emerald-700' : verdict === 'PASS' ? 'border-rose-500/40 bg-rose-50 text-rose-700' : 'border-amber-500/40 bg-amber-50 text-amber-700'}`}>
               {verdict}
             </div>
 
-            <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+            <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
               Coverage initiated · {result.companyName}
             </div>
-            <h2 className="font-serif text-2xl font-semibold leading-tight text-slate-900 sm:text-3xl">
+            <h2 className="text-2xl font-black leading-tight text-slate-950 sm:text-3xl">
               {result.decision.summary}
             </h2>
 
@@ -295,8 +306,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm">
-                <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                   Executive summary
                 </div>
                 <div className="space-y-3 text-base leading-8 text-slate-700">
@@ -306,8 +317,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-5 shadow-sm">
-                <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">
                   Why it matters
                 </div>
                 <div className="space-y-3 text-sm leading-7 text-slate-700">
@@ -319,8 +330,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
             </div>
 
             <div className="mt-6 grid gap-4 xl:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm">
-                <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                   Key factors
                 </h3>
                 <ul className="space-y-2 text-sm leading-7 text-slate-700">
@@ -333,8 +344,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm">
-                <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                   Risks
                 </h3>
                 <ul className="space-y-2 text-sm leading-7 text-slate-700">
@@ -347,8 +358,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm xl:col-span-3">
-                <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm xl:col-span-3">
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                   Reasoning
                 </h3>
                 <div className="whitespace-pre-wrap text-sm leading-8 text-slate-700">
@@ -357,8 +368,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
               </div>
 
               {result.decision.critique && (
-                <div className={`rounded-2xl border p-5 shadow-sm xl:col-span-3 ${result.decision.critique.consistent ? 'border-emerald-500/30 bg-emerald-50/80' : 'border-amber-500/30 bg-amber-50/80'}`}>
-                  <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                <div className={`rounded-2xl border p-5 shadow-sm xl:col-span-3 ${result.decision.critique.consistent ? 'border-emerald-500/30 bg-emerald-50' : 'border-teal-500/30 bg-teal-50'}`}>
+                  <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     {result.decision.critique.consistent ? 'Self-check: passed' : 'Self-check: adjusted'}
                   </div>
                   <p className="text-sm leading-7 text-slate-700">{result.decision.critique.note}</p>
@@ -376,8 +387,8 @@ function HomePage({ apiUrl, onResearch, onNavigate }) {
               )}
             </div>
 
-            <div className="mt-8 rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm">
-              <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+              <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                 Sources consulted
               </div>
               <div className="grid gap-3 md:grid-cols-2">
