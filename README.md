@@ -1,3 +1,4 @@
+
 # Investment Research Agent
 
 An AI agent that takes a company name, researches it (news + financial signals),
@@ -26,7 +27,7 @@ black box.
 npm install
 
 # Configure environment
-cp .env.example .env.local   # for frontend config
+cp backend/.env.example backend/.env
 # Then update backend/.env with your API keys and MongoDB URI
 
 # Start development servers
@@ -39,8 +40,8 @@ Open `http://localhost:5174` (frontend).
 
 | Key | Where to get it | Notes |
 |---|---|---|
-| `OPENAI_API_KEY` | platform.openai.com | Powers the synthesis + decision nodes |
-| `OPENAI_MODEL` | — | Optional, defaults to `gpt-4o-mini` |
+| `GROQ_API_KEY` | console.groq.com | Powers the synthesis + decision nodes |
+| `GROQ_MODEL` | — | Optional, defaults to `llama-3.3-70b-versatile` |
 | `TAVILY_API_KEY` | tavily.com | Free tier available; powers the two search nodes |
 | `FMP_API_KEY` | financialmodelingprep.com | Optional; structured financial data |
 | `MONGO_URI` | mongodb.com/cloud | MongoDB Atlas connection string for auth |
@@ -171,4 +172,3 @@ graph, shape the response. All the actual thinking lives in `lib/agent/`.
 
 Built with AI assistance throughout (as instructed/mandated by the assignment).
 Chat transcripts are included in `/chat-logs` per the bonus submission guidance.
-# Research_Desk

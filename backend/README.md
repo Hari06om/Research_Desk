@@ -9,9 +9,15 @@ Node.js/Express server powering the investment research agent.
 npm install --legacy-peer-deps
 ```
 
-2. Configure environment variables in `.env`:
+2. Configure environment variables:
+```bash
+cp .env.example .env
 ```
-OPENAI_API_KEY=your_key_here
+
+Then update `.env` with your keys:
+```env
+GROQ_API_KEY=your_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
 TAVILY_API_KEY=your_key_here
 FMP_API_KEY=your_key_here
 MONGO_URI=mongodb+srv://username:password@cluster.xxx.mongodb.net/researchdesk
@@ -62,7 +68,7 @@ START → research_news → research_financials → synthesize → decide → cr
 - **MongoDB** - User persistence
 - **Tavily** - Web search
 - **Financial Modeling Prep** - Market data
-- **OpenAI** - Language models
+- **Groq** - Language models through an OpenAI-compatible API
 
 ## Development
 
