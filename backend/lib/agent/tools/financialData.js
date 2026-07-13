@@ -1,8 +1,8 @@
-const FMP_BASE = "https://financialmodelingprep.com/api/v3";
+const FMP_BASE = "https://financialmodelingprep.com/stable";
 
 /**
  * Pulls structured fundamentals for a company from Financial Modeling Prep
- * (free tier: https://financialmodelingprep.com). Unlike the web-search
+ * (https://financialmodelingprep.com). Unlike the web-search
  * fallback, this gives exact numbers (market cap, P/E, revenue, margins)
  * when the company is public.
  *
@@ -22,8 +22,10 @@ export async function getStructuredFinancials(companyName) {
     if (!ticker) return null;
 
     const [profile, quote] = await Promise.all([
-      fetchJson(`${FMP_BASE}/profile/${ticker}?apikey=${apiKey}`),
-      fetchJson(`${FMP_BASE}/quote/${ticker}?apikey=${apiKey}`),
+      fetchJson(`${FMP_BASE}/profile?symbol=${encodeURIComponent(ticker)}&apikey=${apiKey}`),
+      // Quote access depends on the FMP subscription. Profile data is enough
+      // to return a useful result, so a quote failure must not discard it.
+      fetchJsonOrNull(`${FMP_BASE}/quote?symbol=${encodeURIComponent(ticker)}&apikey=${apiKey}`, 5_000),
     ]);
 
     const p = profile?.[0];
@@ -36,15 +38,15 @@ export async function getStructuredFinancials(companyName) {
       sector: p?.sector,
       industry: p?.industry,
       description: p?.description,
-      marketCap: q?.marketCap ?? p?.mktCap,
-      price: q?.price,
-      peRatio: q?.pe,
-      eps: q?.eps,
-      priceChangePercent: q?.changesPercentage,
-      yearHigh: q?.yearHigh,
-      yearLow: q?.yearLow,
-      volume: q?.volume,
-      avgVolume: q?.avgVolume,
+      marketCap: q?.marketCap ?? p?.marketCap ?? p?.mktCap,
+      price: q?.price ?? p?.price,
+      peRatio: q?.pe ?? p?.pe,
+      eps: q?.eps ?? p?.eps,
+      priceChangePercent: q?.changesPercentage ?? p?.changePercentage,
+      yearHigh: q?.yearHigh ?? p?.yearHigh,
+      yearLow: q?.yearLow ?? p?.yearLow,
+      volume: q?.volume ?? p?.volume,
+      avgVolume: q?.avgVolume ?? p?.averageVolume,
     };
   } catch (err) {
     console.error(`getStructuredFinancials failed for "${companyName}":`, err.message);
@@ -54,13 +56,29 @@ export async function getStructuredFinancials(companyName) {
 
 async function resolveTicker(companyName, apiKey) {
   const results = await fetchJson(
-    `${FMP_BASE}/search?query=${encodeURIComponent(companyName)}&limit=1&apikey=${apiKey}`
+    `${FMP_BASE}/search-name?query=${encodeURIComponent(companyName)}&apikey=${apiKey}`
   );
   return results?.[0]?.symbol || null;
 }
 
-async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`FMP request failed: ${res.status}`);
-  return res.json();
+async function fetchJson(url, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error(`FMP request failed: ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchJsonOrNull(url, timeoutMs) {
+  try {
+    return await fetchJson(url, timeoutMs);
+  } catch (err) {
+    console.warn(`Optional FMP request skipped: ${err.message}`);
+    return null;
+  }
 }

@@ -30,6 +30,9 @@ npm install
 cp backend/.env.example backend/.env
 # Then update backend/.env with your API keys and MongoDB URI
 
+# Optional: configure the frontend to call a deployed backend
+cp frontend/.env.example frontend/.env.local
+
 # Start development servers
 npm run dev
 ```
@@ -46,6 +49,24 @@ Open `http://localhost:5174` (frontend).
 | `FMP_API_KEY` | financialmodelingprep.com | Optional; structured financial data |
 | `MONGO_URI` | mongodb.com/cloud | MongoDB Atlas connection string for auth |
 | `PORT` | — | Optional, defaults to `3001` |
+
+The frontend optionally accepts `VITE_BACKEND_URL` and `VITE_API_URL`. Set both
+to the public backend URL when deploying frontend and backend separately.
+
+### Deployment
+
+Deploy the `backend` directory to any Node.js host (for example Render, Railway,
+or a VM) and set the backend variables above there. Confirm the deployment with
+`GET /api/health`. Deploy the `frontend` directory as a Vite static site and set
+both frontend variables to the backend's public URL, for example:
+
+```bash
+VITE_BACKEND_URL=https://your-api.example.com
+VITE_API_URL=https://your-api.example.com/api/research
+```
+
+Do not expose any `GROQ_API_KEY`, `TAVILY_API_KEY`, `FMP_API_KEY`, or
+`MONGO_URI` as frontend environment variables.
 
 ### MongoDB Setup (for user authentication)
 1. Create a free cluster at [MongoDB Atlas](https://mongodb.com/cloud/atlas)
@@ -87,7 +108,8 @@ START → research_news → research_financials → synthesize → decide → cr
 - **research_news** — calls a web search tool (Tavily) for recent news.
 - **research_financials** — runs two things **in parallel**: a structured
   fundamentals lookup (Financial Modeling Prep — ticker resolution → profile +
-  quote, giving exact market cap, P/E, price, etc.) and a general web search for
+  optional quote, giving market cap, price, and other available fields) and a
+  general web search for
   financial narrative/context. If the company has no public ticker (private
   company, startup), the structured lookup returns `null` and the agent falls
   back to search-derived signal only — this is a normal path, not an error.
@@ -111,8 +133,8 @@ START → research_news → research_financials → synthesize → decide → cr
 State (`AgentState` in `graph.js`) also accumulates a `steps` trace at each node —
 this is what makes the agent's process inspectable rather than just its answer.
 
-The API route (`pages/api/research.js`) is a thin wrapper: validate input, run the
-graph, shape the response. All the actual thinking lives in `lib/agent/`.
+The Express API route (`backend/server.js`) validates input, runs the graph, and
+shapes the response. All agent logic lives in `backend/lib/agent/`.
 
 ## Key decisions & trade-offs
 
@@ -138,23 +160,32 @@ graph, shape the response. All the actual thinking lives in `lib/agent/`.
   wrapping JSON in prose or breaking schema under pressure —
   `withStructuredOutput()` enforces the shape at the API level.
 - **Financial Modeling Prep for structured data, with automatic fallback.**
-  Real numbers (market cap, P/E, price) beat search snippets for hard facts on
-  public companies. But ticker resolution fails for private companies and
-  startups by design — the agent treats that as a normal case (not an error)
-  and falls back to search-derived signal, so it still works for any company
-  name, not just listed ones.
-- **No persistence / history.** Each run is stateless. Given more time I'd store
+  Real numbers (market cap and price) beat search snippets for hard facts on
+  public companies. The implementation uses FMP's current Stable endpoints and
+  does not fail a report if an optional quote endpoint is unavailable on the
+  configured plan or times out. Private companies and ambiguous names also fall back to
+  search-derived signals, so the app remains useful beyond listed companies.
+- **No research persistence / history.** Each run is stateless. Given more time I'd store
   past runs (Mongo, since that's my usual stack) so a user can revisit or compare
   past verdicts on the same company over time.
-- **Next.js over separate React + Express.** Chose Next.js specifically because
-  it satisfies both the React and Node.js requirements in one deployable unit and
-  ships cleanly to Vercel for the bonus points.
+- **React + Express instead of a full-stack framework.** Keeping frontend and
+  backend separate makes the API boundary and the LangGraph orchestration easy
+  to inspect. The trade-off is two development processes rather than one.
 
 ## Example runs
 
-> Fill this in with 2-3 actual runs before submitting — paste the company name and
-> the resulting verdict/summary/key factors here. (Left as a template since actual
-> output depends on live search + LLM calls at submission time.)
+The output is intentionally live: search results and recommendations can change
+as news changes. Before submission, run the following companies locally and
+paste the generated report screenshots or JSON into `docs/example-runs.md`:
+
+| Company | Why it is useful for testing |
+|---|---|
+| NVIDIA | Clear public ticker and high volume of current news. |
+| HDFC Bank | Tests an India-focused company query. |
+| Capgemini | Tests international ticker resolution (`CAP.PA`, Euronext Paris). |
+
+For each run, include the company name, timestamp, source links, verdict,
+confidence, key factors, and risks. Do not present stale output as current data.
 
 ## What I'd improve with more time
 
@@ -167,8 +198,17 @@ graph, shape the response. All the actual thinking lives in `lib/agent/`.
 - Persist runs (MongoDB) so users can build a watchlist and see verdict history.
 - Streaming: surface each node's `steps` entry to the UI live as it happens,
   instead of returning everything at once at the end.
+- Add automated backend tests for provider failures, schema validation, and
+  ticker resolution.
+- Add durable, server-verified sessions and rate limiting before any production
+  use. Passwords are hashed using Node's `scrypt`, but the current auth token is
+  still intentionally a lightweight demo token.
 
 ## AI usage disclosure
 
 Built with AI assistance throughout (as instructed/mandated by the assignment).
-Chat transcripts are included in `/chat-logs` per the bonus submission guidance.
+The curated technical decision log is in
+[`docs/llm-development-log.md`](docs/llm-development-log.md). It intentionally
+contains no credentials or private information. Add your own platform-exported
+chat transcript alongside it if you want to claim the assignment's transcript
+bonus; do not fabricate one.
