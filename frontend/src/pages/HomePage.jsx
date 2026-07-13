@@ -388,6 +388,34 @@ function HomePage({ apiUrl, onResearch, onNavigate, user, onLogout }) {
               )}
             </div>
 
+            {result.steps?.length > 0 && (
+              <section className="mt-8 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm" aria-label="Agent research trace">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-300">
+                      Agent research trace
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      A transparent record of the LangGraph workflow used to produce this report.
+                    </p>
+                  </div>
+                  {result.generatedAt && (
+                    <span className="text-xs text-slate-400">Completed {formatTimestamp(result.generatedAt)}</span>
+                  )}
+                </div>
+                <ol className="mt-5 grid gap-3 md:grid-cols-2">
+                  {result.steps.map((step, index) => (
+                    <li key={`${step}-${index}`} className="flex gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-sm leading-6 text-slate-200">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-400/15 text-xs font-black text-emerald-300">
+                        {index + 1}
+                      </span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
+
             <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
               <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
                 Sources consulted
@@ -450,6 +478,17 @@ function extractDomain(url) {
     return new URL(url).hostname.replace('www.', '');
   } catch {
     return url;
+  }
+}
+
+function formatTimestamp(value) {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch {
+    return value;
   }
 }
 

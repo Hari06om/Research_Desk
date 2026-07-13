@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import Footer from '../components/Footer.jsx';
 import Navbar from '../components/Navbar.jsx';
 
-function AuthPage({ onNavigate, onAuth, user, onLogout }) {
+function AuthPage({ apiBaseUrl, onNavigate, onAuth, user, onLogout }) {
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [message, setMessage] = useState('');
@@ -21,7 +21,7 @@ function AuthPage({ onNavigate, onAuth, user, onLogout }) {
         ? { email: form.email, password: form.password }
         : { name: form.name, email: form.email, password: form.password };
 
-      const response = await fetch('http://localhost:3001' + endpoint, {
+      const response = await fetch(`${apiBaseUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -97,9 +97,13 @@ function AuthPage({ onNavigate, onAuth, user, onLogout }) {
                 onChange={(event) => setForm({ ...form, password: event.target.value })}
                 type="password"
                 placeholder="Password"
+                minLength="8"
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                 required
               />
+
+              {mode === 'signup' && <p className="text-xs text-slate-500">Use at least 8 characters.</p>}
 
               <button type="submit" disabled={loading} className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
                 {loading ? 'Please wait…' : title}

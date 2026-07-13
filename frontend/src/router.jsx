@@ -8,6 +8,7 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/research';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 const USER_STORAGE_KEY = 'researchDeskUser';
 const TOKEN_STORAGE_KEY = 'researchDeskToken';
 const THEME_STORAGE_KEY = 'researchDeskTheme';
@@ -87,7 +88,7 @@ function Router() {
     }
 
     if (currentPath === '/auth') {
-      return <AuthPage onNavigate={navigate} onAuth={handleAuth} user={user} onLogout={handleLogout} />;
+      return <AuthPage apiBaseUrl={BACKEND_URL} onNavigate={navigate} onAuth={handleAuth} user={user} onLogout={handleLogout} />;
     }
 
     return <NotFoundPage onNavigate={navigate} />;
